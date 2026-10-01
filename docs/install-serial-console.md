@@ -11,11 +11,63 @@ once from the DOM and is useful as a second rescue system later.
 
 - A 3.3 V TTL USB serial adapter on header **J5** (next to the buttons): pin 2 = GND,
   pin 4 = TX of the NAS, pin 6 = RX of the NAS; cross RX and TX; do not connect VCC.
-  115200 8N1. See [hardware.md](hardware.md).
+  115200 8N1. See [Connecting the serial console](#connecting-the-serial-console) below
+  and [hardware.md](hardware.md).
 - A USB stick (at least 4 GB) for the rescue image.
 - A Linux build host ([building.md](building.md)) and a PC with Python and `paramiko`
   (for the DSM helper scripts) or `pyserial` (for the console logger).
 - A full backup of the NAS data. **The install wipes both disks.**
+
+## Connecting the serial console
+
+J5 is a bent 2x3 pin header at the board edge, next to the two buttons
+([photo 1](#photo-1)). Only the three pins of the row next to the PCB are used: 2, 4 and 6.
+The other row holds pin 1 (3.3 V) and two unused pins; leave it free.
+
+| J5 pin | Signal | Adapter pin | Wire in the photos |
+|---|---|---|---|
+| 2 | GND | GND | grey |
+| 4 | TX (the NAS sends) | RXD | green |
+| 6 | RX (the NAS receives) | TXD | purple |
+| 1 | 3.3 V | not connected | |
+
+1. Set the adapter to 3.3 V levels. Do not connect its 5V or VCC pin.
+2. Connect GND first, then cross the data lines: adapter TXD to J5 pin 6, adapter RXD to
+   J5 pin 4 ([photo 2](#photo-2), [photo 3](#photo-3)). Pin 6 is at the button end of the
+   row, pin 2 at the end with the `J5` print.
+3. Open the port at 115200 8N1, no flow control, and power on. In the GRUB menu, Ctrl-C
+   within 3 seconds stops the countdown.
+
+The photos show the board out of the case, with the fan connected
+([photo 5](#photo-5)).
+
+<a id="photo-1"></a>
+**Photo 1.** The DS220+ main board: J5 (serial console), the DOM (boot flash) and the
+buttons. The serial number label is blurred.
+
+![DS220+ main board with J5, the DOM and the buttons marked](images/ds220plus-board-top.jpg)
+
+<a id="photo-2"></a>
+**Photo 2.** J5 up close. Red: the row next to the PCB with pins 6 (RX), 4 (TX) and
+2 (GND). Yellow: the other row with pin 1 (3.3 V), not connected.
+
+![J5 header with pin numbers and signals](images/ds220plus-j5-pinout.jpg)
+
+<a id="photo-3"></a>
+**Photo 3.** J5 wired: purple to pin 6, green to pin 4, grey to pin 2.
+
+![J5 with the three wires connected](images/ds220plus-j5-wired.jpg)
+
+<a id="photo-4"></a>
+**Photo 4.** The adapter side: GND (grey), TXD (purple) and RXD (green). 5V, CTS and DTR
+stay free.
+
+![USB TTL adapter with GND, TXD and RXD marked](images/usb-ttl-adapter.jpg)
+
+<a id="photo-5"></a>
+**Photo 5.** The whole setup: adapter, wires, J5.
+
+![The whole setup: adapter, wires, J5](images/serial-setup-overview.jpg)
 
 ## Serial console logging
 

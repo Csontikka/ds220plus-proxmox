@@ -37,7 +37,7 @@ the pad configuration on `INT3453:00` measured under DSM.
 
 | What | Result |
 |---|---|
-| Serial header | **J5** (bent 2x3 pins, next to the buttons): 1 = 3.3 V, **2 = GND, 4 = TX (the NAS sends), 6 = RX**, 3.3 V TTL, 115200 8N1. Do not connect VCC. The screw is not a good ground. |
+| Serial header | **J5** (bent 2x3 pins, next to the buttons): 1 = 3.3 V, **2 = GND, 4 = TX (the NAS sends), 6 = RX**, 3.3 V TTL, 115200 8N1. Do not connect VCC. The screw is not a good ground. Photos and wiring: [install-serial-console.md](install-serial-console.md#connecting-the-serial-console). |
 | LPSS UARTs, Debian kernel | `ttyS0` = 0xA1215000 (PCI 00:18.0, **microcontroller**), `ttyS1` = 0xA1217000 (00:18.2, **console**). DSM numbers them the other way round. |
 | LPSS UARTs, Proxmox kernel | `ttyS4` = 0xA1215000 (microcontroller), `ttyS5` = 0xA1217000 (console). So `console=ttyS5,115200n8` there. The udev rule in the overlay creates `/dev/ttyMICROP` and `/dev/ttyCONSOLE` by MMIO address on both kernels. |
 | GPIO controllers | `INT3453:00` = gpiochip0 (80 lines), `:01` (80), `:02` (20), `:03` (35); `pinctrl_geminilake` |

@@ -11,6 +11,10 @@ firmware -> Synology GRUB (DOM p1, signed .efi) -> menu SynoBootLoader.conf
 
 `/dev/synoboot` under DSM: 120 MiB (245760 sectors of 512 bytes), GPT.
 
+The DOM is the small module on the top of the main board (yellow box below).
+
+![DS220+ main board with the DOM marked](images/ds220plus-board-top.jpg)
+
 | Partition | Size | Type | Free (as shipped) | Content |
 |---|---|---|---|---|
 | p1 `synoboot1` | 32 MB | EFI System (FAT) | about 22 MB | `EFI/boot/SynoBootLoader.efi` (signed GRUB), `EFI/boot/SynoBootLoader.conf` (the menu), `GRUB_VER`, the factory recovery `zImage`, `rd.gz`, `model.dtb` |

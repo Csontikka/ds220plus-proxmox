@@ -31,6 +31,10 @@ Tested on the DS220+ only (two units, BIOS and DOM as shipped). Other Gemini Lak
 (DS420+, DS720+, DS920+) are similar, but pins, LEDs and the DOM layout differ. Do not use
 this on another model without checking every value in [docs/hardware.md](docs/hardware.md).
 
+![DS220+ main board: the serial header J5, the DOM and the buttons](docs/images/ds220plus-board-top.jpg)
+
+The serial header and how to wire it: [docs/install-serial-console.md](docs/install-serial-console.md#connecting-the-serial-console).
+
 ## Warnings
 
 - This voids any warranty and is not supported by Synology or Proxmox.
