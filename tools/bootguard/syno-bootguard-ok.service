@@ -1,0 +1,14 @@
+[Unit]
+Description=Mark this boot healthy for the ZFSBootMenu boot guard
+Documentation=file:///usr/local/sbin/syno-bootguard
+Wants=network-online.target
+After=network-online.target pveproxy.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/syno-bootguard-check
+TimeoutStartSec=6min
+
+[Install]
+WantedBy=multi-user.target

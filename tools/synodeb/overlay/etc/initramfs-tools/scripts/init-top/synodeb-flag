@@ -1,0 +1,33 @@
+#!/bin/sh
+# DS220+: remove the one-shot flag on the DOM as early as possible, so that
+# any failure after this point ends in DSM on the next boot, not in a loop.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+
+DOM_UUID=45e5b07d-4783-4867-a369-f99c0cd1e610   # DOM partition 2 (ext2)
+FLAG=linux-once
+log() { echo "synodeb: $*" > /dev/kmsg; echo "$(cut -d' ' -f1 /proc/uptime) $*" >> /run/synodeb.log; }
+
+for m in xhci_pci usb_storage sd_mod ext4; do modprobe -q "$m"; done
+dev=""
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
+	dev="$(blkid -U "$DOM_UUID" 2>/dev/null)"
+	[ -n "$dev" ] && break
+	sleep 0.5
+done
+if [ -z "$dev" ]; then
+	log "init-top: ERROR DOM partition not found, flag not removed"
+	exit 0
+fi
+mkdir -p /dom
+if mount -t ext2 -o rw,noatime "$dev" /dom; then
+	if [ -e "/dom/$FLAG" ]; then
+		rm -f "/dom/$FLAG" && sync && log "init-top: one-shot flag removed ($dev), next boot is DSM"
+	else
+		log "init-top: no one-shot flag on the DOM"
+	fi
+	umount /dom
+else
+	log "init-top: ERROR cannot mount DOM partition $dev"
+fi

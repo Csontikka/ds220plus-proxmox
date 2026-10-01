@@ -1,0 +1,55 @@
+#!/bin/sh
+# DS220+ early boot, before the root filesystem is looked for:
+#   1. factory MAC addresses (the GRUB `vender` command passes macs= on the cmdline)
+#   2. netconsole, so the boot can be followed over the LAN without a serial cable
+# The one-shot flag and USB power are handled earlier, in init-top.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+
+log() { echo "synodeb: $*" > /dev/kmsg; echo "$(cut -d' ' -f1 /proc/uptime) $*" >> /run/synodeb.log; }
+arg() { for x in $(cat /proc/cmdline); do case "$x" in "$1"=*) echo "${x#*=}" ;; esac; done; }
+
+modprobe -q r8169
+
+# 1. MAC addresses: macs=9009d0xxxxxx,9009d0yyyyyy -> LAN1 (PCI 01:00.0), LAN2 (PCI 02:00.0)
+MACS="$(arg macs)"
+if [ -n "$MACS" ]; then
+	n=1
+	for m in $(echo "$MACS" | tr ',' ' '); do
+		mac="$(echo "$m" | sed 's/\(..\)/\1:/g; s/:$//')"
+		for d in /sys/class/net/*; do
+			case "$(readlink -f "$d/device")" in
+				*/0000:0${n}:00.0) ip link set dev "${d##*/}" address "$mac" && log "mac ${d##*/} = $mac" ;;
+			esac
+		done
+		n=$((n + 1))
+	done
+else
+	log "no macs= on the cmdline"
+fi
+
+# 2. netconsole
+NC="$(arg synodeb.nc)"        # target ip[/mac], e.g. 192.0.2.20/<mac>
+NCSRC="$(arg synodeb.ncsrc)"  # source ip used before DHCP
+if [ -n "$NC" ] && [ -n "$NCSRC" ]; then
+	IF=""
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+		for d in /sys/class/net/*; do
+			n="${d##*/}"; [ "$n" = lo ] && continue
+			ip link set "$n" up 2>/dev/null
+			[ "$(cat "$d/carrier" 2>/dev/null)" = 1 ] && IF="$n" && break
+		done
+		[ -n "$IF" ] && break
+		sleep 1
+	done
+	if [ -n "$IF" ]; then
+		tip="${NC%%/*}"; tmac=""; [ "$NC" != "$tip" ] && tmac="${NC#*/}"
+		modprobe netconsole netconsole="6665@${NCSRC}/${IF},6666@${tip}/${tmac}" \
+			&& log "netconsole on $IF ($(cat /sys/class/net/$IF/address)) -> $tip"
+	else
+		log "netconsole: no link"
+	fi
+fi
+log "cmdline: $(cat /proc/cmdline)"
+log "init-premount done"

@@ -1,0 +1,14 @@
+[Unit]
+Description=DS220+ disk bay power (GPIO 20/21)
+DefaultDependencies=no
+After=systemd-udevd.service systemd-modules-load.service
+Before=local-fs-pre.target smartmontools.service synofand.service
+Wants=local-fs-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/syno-disks
+
+[Install]
+WantedBy=sysinit.target

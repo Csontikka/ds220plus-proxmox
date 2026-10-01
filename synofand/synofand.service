@@ -1,0 +1,17 @@
+[Unit]
+Description=Synology DS220+ fan and button daemon
+After=systemd-modules-load.service syno-disks.service
+Before=multi-user.target
+
+[Service]
+Type=simple
+ExecStartPre=/sbin/modprobe -a drivetemp coretemp
+ExecStart=/usr/bin/python3 /usr/local/sbin/synofand.py -c /etc/synofand.toml
+# The daemon sets the failsafe duty itself on exit; this is the last resort
+# if it was killed hard.
+ExecStopPost=/usr/bin/python3 /usr/local/sbin/synofand.py -c /etc/synofand.toml --send V99
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

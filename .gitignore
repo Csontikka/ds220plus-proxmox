@@ -1,0 +1,11 @@
+# local working files
+.scratch/
+
+# build output and caches
+__pycache__/
+*.pyc
+out/
+tools/zbm/keys/
+
+# your own SSH public keys (see authorized_keys.example next to each)
+tools/*/overlay/root/.ssh/authorized_keys

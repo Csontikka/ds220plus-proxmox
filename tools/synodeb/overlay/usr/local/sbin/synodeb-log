@@ -1,0 +1,9 @@
+#!/bin/sh
+# Copies the boot log to the SYNOLOG partition, which DSM can read after a fallback.
+d=/synolog
+mountpoint -q "$d" || exit 0
+b="$(cat /proc/sys/kernel/random/boot_id | cut -c1-8)"
+{ echo "BOOT OK $(date -Is) $(hostname) $(ip -4 -br addr | tr '\n' ' ')"; } >> "$d/boots.txt"
+journalctl -b --no-pager > "$d/journal-$b.txt" 2>&1
+dmesg > "$d/dmesg-$b.txt" 2>&1
+sync

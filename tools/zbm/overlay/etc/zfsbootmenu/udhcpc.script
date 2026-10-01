@@ -1,0 +1,18 @@
+#!/bin/sh
+# minimal busybox udhcpc script for the ZFSBootMenu rescue network
+# /run/syno-keep-static: a fixed address (zbm-net.conf) is on the interface and its
+# gateway did not answer; keep it and add the DHCP address next to it
+case "$1" in
+	deconfig)
+		[ -e /run/syno-keep-static ] || ip addr flush dev "$interface"
+		ip link set "$interface" up ;;
+	bound|renew)
+		if [ -e /run/syno-keep-static ]; then
+			ip addr add "$ip/$subnet" dev "$interface" 2>/dev/null
+		else
+			ip addr flush dev "$interface"
+			ip addr add "$ip/$subnet" dev "$interface"
+		fi
+		[ -n "$router" ] && ip route replace default via "${router%% *}" dev "$interface"
+		echo "ds220: $interface $ip" > /dev/kmsg ;;
+esac

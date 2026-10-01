@@ -1,0 +1,17 @@
+[Unit]
+Description=DS220+ factory MAC addresses of both LAN ports (from the DOM vender data)
+DefaultDependencies=no
+After=systemd-udevd.service systemd-udev-trigger.service
+Wants=systemd-udev-trigger.service
+Before=network-pre.target networking.service
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# wait for both NICs (udev) before setting their addresses
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do [ -d /sys/bus/pci/devices/0000:01:00.0/net ] && [ -d /sys/bus/pci/devices/0000:02:00.0/net ] && exit 0; sleep 0.2; done; exit 0'
+ExecStart=/usr/local/sbin/syno-macs
+
+[Install]
+WantedBy=sysinit.target

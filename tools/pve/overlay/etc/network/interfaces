@@ -1,0 +1,28 @@
+# DS220+: both ports in an active-backup bond, bridged into vmbr0 for Proxmox VE.
+# Either cable (LAN1 or LAN2, or both) works; miimon must not be 0, or a dead link is
+# never noticed. syno-macs.service gives both ports their factory MACs from the DOM before
+# the network comes up; the bond takes LAN1's (its first port), the bridge the bond's.
+# Example address (192.0.2.0/24 is a documentation range): set your own here, or build
+# with SYNO_NET=dhcp. build-rootfs.sh replaces the host name in /etc/hosts, not the address.
+auto lo
+iface lo inet loopback
+
+auto enp1s0
+iface enp1s0 inet manual
+
+auto enp2s0
+iface enp2s0 inet manual
+
+auto bond0
+iface bond0 inet manual
+	bond-slaves enp1s0 enp2s0
+	bond-mode active-backup
+	bond-miimon 100
+
+auto vmbr0
+iface vmbr0 inet static
+	address 192.0.2.10/24
+	gateway 192.0.2.1
+	bridge-ports bond0
+	bridge-stp off
+	bridge-fd 0

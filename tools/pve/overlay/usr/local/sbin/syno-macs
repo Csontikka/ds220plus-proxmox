@@ -1,0 +1,39 @@
+#!/bin/sh
+# Gives the two LAN ports their factory MAC addresses, read from the Synology DOM.
+# The Realtek chips only carry a generic default (00:e0:4c:68:00:0x); the real addresses
+# live in the DOM's "vender" file (on the partition next to DSM's kernel). Runs before the
+# network comes up; the bond and the bridge then inherit LAN1's address.
+#
+# vender layout (DS220+, checked 2026-09-25): magic "SYNO!!!!" at 0; MAC n at
+# 208 + 7*(n-1): 6 bytes followed by 1 check byte = sum of the 6 bytes mod 256.
+set -eu
+P2_UUID=45e5b07d-4783-4867-a369-f99c0cd1e610
+PORTS="0000:01:00.0 0000:02:00.0"   # LAN1, LAN2 (PCI addresses of the two NICs)
+
+log() { echo "syno-macs: $*"; }
+
+part=$(blkid -U "$P2_UUID" 2>/dev/null || true)
+[ -n "$part" ] || { log "DOM vender partition not found, NICs keep their default MACs"; exit 1; }
+mnt=$(mktemp -d /run/syno-macs.XXXXXX)
+trap 'umount "$mnt" 2>/dev/null; rmdir "$mnt"' EXIT
+mount -o ro "$part" "$mnt"
+v="$mnt/vender"
+[ "$(head -c 8 "$v")" = "SYNO!!!!" ] || { log "unexpected vender format"; exit 1; }
+
+n=1
+for pci in $PORTS; do
+	set -- $(od -A n -t u1 -j $((208 + 7 * (n - 1))) -N 7 "$v")
+	[ $# -eq 7 ] || { log "LAN$n: vender entry unreadable"; n=$((n + 1)); continue; }
+	sum=$((($1 + $2 + $3 + $4 + $5 + $6) % 256))
+	if [ "$sum" != "$7" ] || [ $(($1 + $2 + $3 + $4 + $5 + $6)) -eq 0 ]; then
+		log "LAN$n: no valid MAC in vender (check byte)"; n=$((n + 1)); continue
+	fi
+	mac=$(printf '%02x:%02x:%02x:%02x:%02x:%02x' "$1" "$2" "$3" "$4" "$5" "$6")
+	dev=$(ls "/sys/bus/pci/devices/$pci/net" 2>/dev/null | head -n 1)
+	if [ -n "$dev" ]; then
+		ip link set dev "$dev" address "$mac" && log "LAN$n $dev = $mac"
+	else
+		log "LAN$n: no network device on $pci"
+	fi
+	n=$((n + 1))
+done

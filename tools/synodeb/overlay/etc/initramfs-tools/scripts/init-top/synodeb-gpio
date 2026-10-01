@@ -1,0 +1,20 @@
+#!/bin/sh
+# DS220+: switch on USB power (GPIO) before udev starts, so the USB stick is
+# already enumerating while udev settles. Disk power (20/21) is not touched.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+
+GPIO_LABEL=INT3453:00
+USB_VBUS="29 30"
+log() { echo "synodeb: $*" > /dev/kmsg; echo "$(cut -d' ' -f1 /proc/uptime) $*" >> /run/synodeb.log; }
+
+chip="$(gpiodetect 2>/dev/null | grep -F "[$GPIO_LABEL]" | cut -d' ' -f1)"
+if [ -z "$chip" ]; then
+	log "init-top: gpio chip $GPIO_LABEL not found"
+	exit 0
+fi
+set --
+for o in $USB_VBUS; do set -- "$@" "$o=1"; done
+# -z: gpioset stays in the background and keeps the lines driven
+gpioset -z -c "$chip" "$@" && log "init-top: usb vbus on ($USB_VBUS) on $chip"

@@ -1,0 +1,15 @@
+[Unit]
+Description=Load the ACPI WDAT hardware watchdog (Proxmox blacklists it for modules-load)
+DefaultDependencies=no
+Before=sysinit.target
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# an explicit modprobe ignores the blacklist; systemd then picks the device up by itself
+# (RuntimeWatchdogSec in system.conf.d/syno-watchdog.conf)
+ExecStart=/sbin/modprobe wdat_wdt
+
+[Install]
+WantedBy=sysinit.target

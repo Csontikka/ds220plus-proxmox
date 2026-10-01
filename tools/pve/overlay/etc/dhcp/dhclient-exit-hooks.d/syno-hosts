@@ -1,0 +1,12 @@
+# DS220+ with vmbr0 by DHCP (build-rootfs.sh SYNO_NET=dhcp): keep the node name on the
+# leased address in /etc/hosts. Proxmox (pmxcfs) needs the node name to resolve to a
+# non-loopback address; with DHCP that address is only known here. Sourced by dhclient-script.
+case "$reason" in BOUND|RENEW|REBIND|REBOOT) ;; *) return 0 2>/dev/null || exit 0 ;; esac
+[ "$interface" = vmbr0 ] && [ -n "$new_ip_address" ] || { return 0 2>/dev/null || exit 0; }
+h="$(hostname -s)"
+fq="$h${new_domain_name:+.${new_domain_name%% *}}"
+line="$new_ip_address	$fq $h"
+if ! grep -qxF "$line" /etc/hosts; then
+	sed -i "/[[:space:]]$h\$/d" /etc/hosts
+	echo "$line" >> /etc/hosts
+fi

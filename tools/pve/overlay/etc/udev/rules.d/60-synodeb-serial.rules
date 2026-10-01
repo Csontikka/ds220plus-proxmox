@@ -1,0 +1,5 @@
+# DS220+ LPSS UARTs: stable names, independent of ttyS numbering
+# (Debian 13 kernel: ttyS0 = microcontroller, ttyS1 = console; Proxmox kernel: ttyS4 / ttyS5;
+#  DSM numbers them the other way round. Always go by MMIO address, never by ttySn.)
+SUBSYSTEM=="tty", KERNEL=="ttyS*", ATTR{iomem_base}=="0xA1215000", SYMLINK+="ttyMICROP"
+SUBSYSTEM=="tty", KERNEL=="ttyS*", ATTR{iomem_base}=="0xA1217000", SYMLINK+="ttyCONSOLE"

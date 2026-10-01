@@ -1,0 +1,19 @@
+#!/bin/sh
+# Adds what the DS220+ early boot needs: GPIO tools, NIC firmware, drivers.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+. /usr/share/initramfs-tools/hook-functions
+
+copy_exec /usr/sbin/blkid /sbin/blkid
+for b in gpioset gpiodetect gpioinfo gpioget; do
+	copy_exec "/usr/bin/$b"
+done
+
+for fw in /usr/lib/firmware/rtl_nic/rtl8168h*; do
+	[ -e "$fw" ] && copy_file firmware "$fw" "/usr/lib/firmware/rtl_nic/$(basename "$fw")"
+done
+
+manual_add_modules xhci_pci xhci_hcd usb_storage uas sd_mod scsi_mod \
+	ext4 vfat nls_cp437 nls_iso8859_1 nls_utf8 \
+	pinctrl_geminilake r8169 realtek netconsole

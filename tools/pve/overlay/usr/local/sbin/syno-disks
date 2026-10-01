@@ -1,0 +1,12 @@
+#!/bin/sh
+# DS220+: switch on the two disk bays one after the other (like DSM does),
+# then rescan SATA. gpioset -z stays in the background and keeps the lines driven.
+set -e
+chip="$(gpiodetect | grep -F "[INT3453:00]" | cut -d' ' -f1)"
+gpioset -z -c "$chip" 20=1
+sleep 5
+gpioset -z -c "$chip" 21=1
+sleep 3
+for h in /sys/class/scsi_host/host*/scan; do echo "- - -" > "$h"; done
+udevadm settle --timeout=30 || true
+modprobe drivetemp

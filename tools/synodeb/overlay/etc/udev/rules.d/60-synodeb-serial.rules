@@ -1,0 +1,4 @@
+# DS220+ LPSS UARTs: stable names, independent of ttyS numbering
+# (Debian: ttyS0 = microcontroller, ttyS1 = console; DSM numbers them the other way round)
+SUBSYSTEM=="tty", KERNEL=="ttyS*", ATTR{iomem_base}=="0xA1215000", SYMLINK+="ttyMICROP"
+SUBSYSTEM=="tty", KERNEL=="ttyS*", ATTR{iomem_base}=="0xA1217000", SYMLINK+="ttyCONSOLE"

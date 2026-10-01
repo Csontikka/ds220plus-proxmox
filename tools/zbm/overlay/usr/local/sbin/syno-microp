@@ -1,0 +1,44 @@
+#!/bin/sh
+# Sends allowlisted commands to the DS220+ front microcontroller from ZFSBootMenu
+# (the full daemon, synofand, takes over in the booted system).
+#   syno-microp V50 9 @     fan 50 %, status LED green blink, C (copy) LED on
+#   syno-microp 4 7B ';A'   power steady; status and C off, then both blink in step
+# Every argument goes out in one write, with 0.3 s between arguments: the controller
+# starts a blink when the command arrives, so blinks sent in one write stay in step.
+# Allowed: 4 5 6 (power LED on/blink/off), 7 8 9 : ; (status LED off/green/green blink/
+# orange/orange blink), @ A B (C LED on/blink/off), Vnn (fan duty). '1' (power off) and 'C' (reset)
+# can never be sent from here.
+for t in cat cut mknod stty printf sleep; do
+	command -v "$t" >/dev/null 2>&1 || eval "$t() { busybox $t \"\$@\"; }"
+done
+
+for arg in "$@"; do
+	case "$arg" in
+	V[0-9][0-9]) ;;
+	*)
+		rest="$arg"
+		while [ -n "$rest" ]; do
+			c="${rest%"${rest#?}"}"; rest="${rest#?}"
+			case "$c" in
+			4|5|6|7|8|9|:|\;|@|A|B) ;;
+			*) echo "syno-microp: '$c' is not allowlisted" >&2; exit 64 ;;
+			esac
+		done ;;
+	esac
+done
+port=""
+for t in /sys/class/tty/ttyS*; do
+	[ "$(cat "$t/iomem_base" 2>/dev/null)" = "0xA1215000" ] || continue
+	port="/dev/${t##*/}"
+	[ -e "$port" ] || mknod "$port" c "$(cut -d: -f1 "$t/dev")" "$(cut -d: -f2 "$t/dev")"
+	break
+done
+[ -n "$port" ] || { echo "syno-microp: microcontroller UART not found" >&2; exit 2; }
+stty -F "$port" 9600 cs8 -cstopb -parenb -crtscts -ixon raw -echo || exit 2
+
+first=1
+for arg in "$@"; do
+	[ -n "$first" ] || sleep 0.3
+	first=""
+	printf '%s' "$arg" > "$port" || exit 3
+done

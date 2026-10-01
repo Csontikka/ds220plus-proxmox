@@ -1,0 +1,13 @@
+Global:
+  ManageImages: true
+  DracutConfDir: /etc/zfsbootmenu/dracut.conf.d
+  PreHooksDir: /etc/zfsbootmenu/generate-zbm.pre.d
+  PostHooksDir: /etc/zfsbootmenu/generate-zbm.post.d
+Components:
+  ImageDir: /out
+  Versions: false
+  Enabled: true
+EFI:
+  Enabled: false
+Kernel:
+  CommandLine: ro loglevel=4

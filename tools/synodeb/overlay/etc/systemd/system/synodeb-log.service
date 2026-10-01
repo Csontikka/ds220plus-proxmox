@@ -1,0 +1,7 @@
+[Unit]
+Description=Copy the boot log to the SYNOLOG partition
+After=synolog.mount network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/synodeb-log

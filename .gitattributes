@@ -1,0 +1,7 @@
+# Everything that runs on the box must keep LF line endings, whatever the checkout OS.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.img binary
+*.zst binary
+*.efi binary

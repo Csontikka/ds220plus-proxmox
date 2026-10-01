@@ -1,0 +1,2 @@
+# /etc/rsyslog.d/90-central.conf: forward everything to the central syslog server (UDP 514)
+*.* @syslog.example.lan:514

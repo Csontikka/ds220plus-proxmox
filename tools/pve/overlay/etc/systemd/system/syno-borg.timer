@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily borg backup of the Samba dataset
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

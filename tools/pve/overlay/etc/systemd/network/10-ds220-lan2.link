@@ -1,0 +1,5 @@
+# Stable name by PCI path. The factory MAC is set by syno-macs.service (from the DOM vender data).
+[Match]
+Path=pci-0000:02:00.0
+[Link]
+NamePolicy=path

@@ -1,0 +1,71 @@
+#!/bin/sh
+# Boot guard for the DS220+: remembers whether the last boot of the real
+# system came up healthy, so ZFSBootMenu can stay in its menu (with SSH) after a
+# failed boot instead of booting the broken system again. Nobody has to go to the box.
+#
+# The state is one 512-byte sector on the internal USB DOM, outside every
+# partition and outside the GPT backup (LBA 244000 of 245760). A single-sector
+# write needs no file system, so a power cut cannot break the DOM partitions.
+#
+#   syno-bootguard status          print the state (ok, pending, failed, unknown)
+#   syno-bootguard set ok|pending|failed
+#
+# ZFSBootMenu (hook): state ok -> write pending, boot as usual;
+#                     anything else -> stay in the menu, SSH available.
+# Proxmox (syno-bootguard-ok.service): healthy after boot -> write ok.
+# Runs under busybox sh (ZFSBootMenu) and dash/bash (Debian).
+set -eu
+
+# ZFSBootMenu ships no coreutils: fall back to busybox applets where a tool is missing
+for t in dd tr head readlink basename grep cat date sync; do
+	command -v "$t" >/dev/null 2>&1 || eval "$t() { busybox $t \"\$@\"; }"
+done
+
+LBA=244000
+DOM_SECTORS=245760
+MAGIC="SYNO-BOOTGUARD-1"
+P2_UUID=45e5b07d-4783-4867-a369-f99c0cd1e610
+
+find_dom() {
+	part=""
+	if [ -e "/dev/disk/by-uuid/$P2_UUID" ]; then
+		part=$(readlink -f "/dev/disk/by-uuid/$P2_UUID")
+	elif command -v blkid >/dev/null 2>&1; then
+		part=$(blkid -U "$P2_UUID" 2>/dev/null || true)
+	fi
+	[ -n "$part" ] || return 1
+	disk="/dev/$(basename "$(readlink -f "/sys/class/block/$(basename "$part")/..")")"
+	# write only to the DOM: exact size, and the Synology model string
+	[ "$(cat "/sys/class/block/$(basename "$disk")/size")" = "$DOM_SECTORS" ] || return 1
+	# (the model reads "DiskStation" on one DS220+ and "Diskstation" on another)
+	grep -qi diskstation "/sys/class/block/$(basename "$disk")/device/model" 2>/dev/null || return 1
+	echo "$disk"
+}
+
+read_state() {
+	line=$(dd if="$1" bs=512 skip=$LBA count=1 2>/dev/null | tr -d '\000' | head -n 1)
+	case "$line" in
+	"$MAGIC state=ok "*) echo ok ;;
+	"$MAGIC state=pending "*) echo pending ;;
+	"$MAGIC state=failed "*) echo failed ;;
+	*) echo unknown ;;
+	esac
+}
+
+write_state() {
+	printf '%s state=%s time=%s\n' "$MAGIC" "$2" "$(date +%s)" |
+		dd of="$1" bs=512 seek=$LBA count=1 conv=sync,notrunc 2>/dev/null
+	sync
+	[ "$(read_state "$1")" = "$2" ]
+}
+
+dom=$(find_dom) || { echo "syno-bootguard: DOM not found" >&2; exit 2; }
+case "${1:-status}" in
+status) read_state "$dom" ;;
+set)
+	case "${2:-}" in
+	ok|pending|failed) write_state "$dom" "$2" || { echo "syno-bootguard: write not verified" >&2; exit 3; } ;;
+	*) echo "usage: syno-bootguard set ok|pending|failed" >&2; exit 64 ;;
+	esac ;;
+*) echo "usage: syno-bootguard status | set ok|pending|failed" >&2; exit 64 ;;
+esac

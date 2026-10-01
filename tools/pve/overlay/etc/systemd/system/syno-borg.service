@@ -1,0 +1,12 @@
+[Unit]
+Description=Borg backup of the Samba dataset (syno-borg)
+After=network-online.target zfs-mount.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/syno-borg
+ExecStopPost=-/usr/local/sbin/syno-borg cleanup
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

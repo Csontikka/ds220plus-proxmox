@@ -1,0 +1,85 @@
+# synofand configuration (copy to /etc/synofand.toml)
+# Every value shown here is the built-in default, except power_action (built-in: "log").
+
+[serial]
+# The microcontroller UART is the Gemini Lake LPSS UART at PCI 00:18.0
+# (DSM: ttyS1, mmio 0xA1215000). Mainline names it ttyS4 or later, so by
+# default the tty is looked up from the PCI address; on Debian the udev rule
+# of synodeb names it /dev/ttyMICROP. Set port to "" to use the PCI lookup.
+port = "/dev/ttyMICROP"
+pci = "0000:00:18.0"
+# DSM frames commands with a leading "-". Plain commands also seem to work.
+# Test both on your unit before relying on either.
+prefix = ""
+
+[fan]
+period = 20              # seconds between measurements (DSM: 20)
+hysteresis = 3           # °C below a step before the fan steps down
+failsafe_duty = 99       # used at start, on exit and when a sensor is missing
+frequency_cmd = ""       # e.g. "W10"; encoding not verified yet, leave empty
+shutdown_confirmations = 2   # consecutive readings over the limit before power off
+
+# DSM "cool" profile (DUAL_MODE_HIGH) of the DS220+, from its scemd.xml.
+# [from_temp_celsius, duty_percent]
+[disk]
+points = [[0, 20], [41, 30], [46, 50], [50, 70], [53, 99]]
+shutdown = 61
+
+[cpu]
+points = [[0, 20], [60, 70], [70, 99]]
+shutdown = 90
+
+# The quieter DSM profile (DUAL_MODE_LOW) would be:
+# disk points = [[0, 20], [46, 30], [52, 50], [55, 70], [58, 99]]
+# cpu  points = [[0, 20], [65, 70], [75, 99]]
+
+[buttons]
+power_byte = "0"         # byte the microcontroller sends for the power button
+# DS220+, verified 2026-09-25: the microcontroller sends "0" when Power is held ~3 s
+# and "a" when RESET is held until the first beep (RESET is only logged).
+power_action = "poweroff"   # "log" or "poweroff" (clean shutdown, guests included)
+# Front "C" (USB copy) button: gpiochip0 line 22, active low, not on the
+# microcontroller. A press is logged with its length; copy_command (run with
+# /bin/sh) is optional.
+copy_enabled = true
+copy_chip_label = "INT3453:00"
+copy_offset = 22
+copy_min_press = 0.1     # seconds; shorter edges are contact bounce
+copy_command = ""
+
+[gpio]
+# Fan tachometer. Needs python3-libgpiod (2.x). On the DS220+ gpiochip0
+# (INT3453:00) line 39 toggles while the fan turns and stays high when it
+# stops. The low-frequency PWM of the microcontroller adds glitch edges at low
+# duty, so the rpm is only computed from min_duty up (clean from V50 on the
+# tested unit); a stopped fan is detected at any duty above 0.
+fan_fail_enabled = true
+chip_label = "INT3453:00"
+fan_fail_offset = 39
+pulses_per_rev = 2       # usual for 3-wire fans; not verified with a strobe
+window = 2.0             # seconds of edges per measurement
+min_duty = 50
+# duty, rpm, fan_stopped, edges as JSON, rewritten every period ("" = off)
+status_file = "/run/synofand/status.json"
+
+[leds]
+# Front LEDs, measured on the DS220+ (docs/fan-and-leds.md). Needs python3-libgpiod and i2c-dev.
+# Power LED steady while the daemon runs (it blinks from power-on until then and again
+# during shutdown); status: green blink booting, green ok, orange warning (degraded pool,
+# hot disk/CPU), orange blink critical (fan stopped, faulted pool).
+enabled = true
+disk_gate_chip = "INT3453:00"   # DSM leaves these two lines high; without them the
+disk_gate_offset = 17           # disk and LAN LEDs stay dark
+lan_gate_chip = "INT3453:01"
+lan_gate_offset = 70
+lp3943_bus = "auto"             # I2C bus numbers change between boots: found via the ACPI device LED3943:00
+lp3943_addr = 0x60
+bays = [{ata = "ata2", green = 0, orange = 1}, {ata = "ata1", green = 2, orange = 3}]   # DISK1 = left bay = ata2 (measured)
+disk_activity = false           # default: no blinking; true: green blinks on disk I/O
+activity_interval = 0.15
+lan = ["enp1s0", "enp2s0"]      # NIC LEDs: link + activity, driven by the NIC
+copy_led = "off"                # "off" or "on"
+brightness = -1                 # TPL0401A wiper, 0x40 brightest .. 0x7d off; -1 = leave
+brightness_bus = "auto"         # the LP3943's bus
+warn_disk_temp = 53
+warn_cpu_temp = 75

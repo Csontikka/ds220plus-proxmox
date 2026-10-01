@@ -1,0 +1,9 @@
+[Unit]
+Description=Copy the boot log to the SYNOLOG partition every minute
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target

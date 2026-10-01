@@ -1,0 +1,17 @@
+#!/bin/sh
+# Marks this boot healthy for the ZFSBootMenu boot guard (see syno-bootguard), once
+# the web UI answers and the default gateway replies. Until then the DOM state stays
+# "pending", and the next boot stops in ZFSBootMenu (SSH) instead of booting this
+# system again. Waits up to 5 minutes.
+for i in $(seq 1 60); do
+	gw=$(ip -4 route show default | awk '{print $3; exit}')
+	if systemctl -q is-active pveproxy &&
+		[ -n "$gw" ] && ping -c 1 -W 2 "$gw" >/dev/null 2>&1 &&
+		curl -skf -o /dev/null --max-time 5 https://127.0.0.1:8006/; then
+		/usr/local/sbin/syno-bootguard set ok && echo "boot healthy (gateway $gw, web UI up): state ok"
+		exit $?
+	fi
+	sleep 5
+done
+echo "boot not healthy after 5 minutes: the boot guard state stays pending" >&2
+exit 1

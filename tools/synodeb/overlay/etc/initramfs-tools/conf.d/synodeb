@@ -1,0 +1,3 @@
+# Keep the initramfs small: it has to fit on the 120 MB internal USB DOM.
+MODULES=list
+COMPRESS=zstd
