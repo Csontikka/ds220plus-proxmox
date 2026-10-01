@@ -1,5 +1,13 @@
 # ds220plus-proxmox
 
+[![GPL-3.0 License](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=plastic)](https://github.com/Csontikka/ds220plus-proxmox/blob/main/LICENSE)
+[![Hardware: Synology DS220+](https://img.shields.io/badge/hardware-Synology%20DS220%2B-555555.svg?style=plastic)](docs/hardware.md)
+[![Proxmox VE 9](https://img.shields.io/badge/Proxmox%20VE-9-e57000.svg?style=plastic&logo=proxmox&logoColor=white)](https://www.proxmox.com/en/products/proxmox-virtual-environment/overview)
+[![Debian 13](https://img.shields.io/badge/Debian-13%20trixie-a80030.svg?style=plastic&logo=debian&logoColor=white)](https://www.debian.org/releases/trixie/)
+[![ZFSBootMenu](https://img.shields.io/badge/boot-ZFSBootMenu-2a6db0.svg?style=plastic)](https://zfsbootmenu.org/)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor-ea4aaa.svg?style=plastic&logo=githubsponsors)](https://github.com/sponsors/Csontikka)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-donate-yellow.svg?style=plastic)](https://buymeacoffee.com/csontikka)
+
 Turn a Synology DS220+ into a Proxmox VE host that boots from a ZFS mirror and can be
 rescued remotely, without opening the box.
 
@@ -102,3 +110,15 @@ tools/
 
 GPL-3.0, see [LICENSE](LICENSE). `tools/pve/post-install/pve-remove-nag.sh` follows the
 community-scripts ProxmoxVE post-install helper (MIT).
+
+This is an independent community project. It is not affiliated with or endorsed by
+Synology or Proxmox. Synology and DiskStation are trademarks of Synology Inc., Proxmox is
+a trademark of Proxmox Server Solutions GmbH. **Use at your own risk.**
+
+## Support
+
+Found a bug or have an idea? [Open an issue](https://github.com/Csontikka/ds220plus-proxmox/issues).
+Feedback and reports from other DS220+ boxes are welcome.
+
+If you find this project useful, consider [buying me a coffee](https://buymeacoffee.com/csontikka)
+or [sponsoring me on GitHub](https://github.com/sponsors/Csontikka).
