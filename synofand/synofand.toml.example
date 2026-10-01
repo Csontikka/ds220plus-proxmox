@@ -3,13 +3,13 @@
 
 [serial]
 # The microcontroller UART is the Gemini Lake LPSS UART at PCI 00:18.0
-# (DSM: ttyS1, mmio 0xA1215000). Mainline names it ttyS4 or later, so by
-# default the tty is looked up from the PCI address; on Debian the udev rule
-# of synodeb names it /dev/ttyMICROP. Set port to "" to use the PCI lookup.
+# (DSM: ttyS1, mmio 0xA1215000). The Debian kernel names it ttyS0, the Proxmox
+# kernel ttyS4, so the udev rule in the overlays names it /dev/ttyMICROP by MMIO
+# address. Set port to "" to look the tty up from the PCI address instead.
 port = "/dev/ttyMICROP"
 pci = "0000:00:18.0"
-# DSM frames commands with a leading "-". Plain commands also seem to work.
-# Test both on your unit before relying on either.
+# DSM frames commands with a leading "-". Plain commands work on the tested
+# units (the ZFSBootMenu hook and synofand send them without a prefix).
 prefix = ""
 
 [fan]
