@@ -1,5 +1,9 @@
 <p align="center"><img src="docs/images/banner.png" alt="ds220plus-proxmox: Proxmox VE on a Synology DS220+" width="100%"></p>
 
+<h1 align="center">ds220plus-proxmox</h1>
+
+<p align="center"><b>Proxmox VE on a Synology DS220+</b></p>
+
 [![GPL-3.0 License](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=plastic)](https://github.com/Csontikka/ds220plus-proxmox/blob/main/LICENSE)
 [![Hardware: Synology DS220+](https://img.shields.io/badge/hardware-Synology%20DS220%2B-555555.svg?style=plastic)](docs/hardware.md)
 [![Proxmox VE 9](https://img.shields.io/badge/Proxmox%20VE-9-e57000.svg?style=plastic&logo=proxmox&logoColor=white)](https://www.proxmox.com/en/products/proxmox-virtual-environment/overview)
