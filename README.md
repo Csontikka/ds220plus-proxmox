@@ -1,6 +1,4 @@
-# ds220plus-proxmox
-
-![ds220plus-proxmox: Proxmox VE on a Synology DS220+](docs/images/banner.png)
+<p align="center"><img src="docs/images/banner.png" alt="ds220plus-proxmox: Proxmox VE on a Synology DS220+" width="100%"></p>
 
 [![GPL-3.0 License](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=plastic)](https://github.com/Csontikka/ds220plus-proxmox/blob/main/LICENSE)
 [![Hardware: Synology DS220+](https://img.shields.io/badge/hardware-Synology%20DS220%2B-555555.svg?style=plastic)](docs/hardware.md)
